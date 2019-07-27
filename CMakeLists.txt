@@ -7,4 +7,4 @@ link_libraries(GL)
 link_libraries(GLU)
 link_libraries(glut)
 
-add_executable(RG53-drive main.cpp)
+add_executable(RG53-drive main.cpp figures.cpp figures.h)
