@@ -5,14 +5,24 @@
 #include <GL/glut.h>
 #include <GL/glu.h>
 #include <GL/gl.h>
+#include <vector>
+#include <algorithm>
 
+#define TIMER_ID 0
+#define TIMER_INTERVAL 10
+
+
+void on_timer(int value);
 void on_display();
 void on_keyboard(unsigned char key, int x, int y);
 void on_reshape(int w, int h);
 void draw_coordinates();
+void car();
+void init();
 
-int window_width = 500;
+int window_width = 800;
 int window_height = 500;
+std::vector<float> camera_pos {1.0, 1.0, 1.0};
 
 int main(int argc, char* argv[])
 {
@@ -27,7 +37,8 @@ int main(int argc, char* argv[])
     glutKeyboardFunc(on_keyboard);
     glutReshapeFunc(on_reshape);
 
-    glClearColor(0.75, 0.75, 0.75, 0);
+    init();
+
 
     glutMainLoop();
     return 0;
@@ -47,19 +58,26 @@ void on_display()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(
-            1.0, 1.0, 1.0,
+            camera_pos[0], camera_pos[1], camera_pos[2],
             0.0, 0.0, 0.0,
             0.0, 1.0, 0.0
             );
 
     draw_coordinates();
 
+    //ground
+    glPushMatrix();
+    glColor3d(30, 30, 0);
     glBegin(GL_POLYGON);
-        glVertex3f(0.5, 0, 0);
-        glVertex3f(0.5, 0.5, 0);
-        glVertex3f(0, 0.5, 0);
-        glVertex3f(0, 0, 0);
+        glVertex3f(10, -0.05, 10);
+        glVertex3f(10, -0.05, -10);
+        glVertex3f(-10, -0.05, -10);
+        glVertex3f(-10, -0.05, 10);
     glEnd();
+    glPopMatrix();
+
+    car();
+
     glutSwapBuffers();
 }
 
@@ -81,6 +99,8 @@ void on_keyboard(unsigned char key, int x, int y)
             exit(0);
             break;
     }
+
+    glutPostRedisplay();
 }
 
 void draw_coordinates()
@@ -104,3 +124,45 @@ void draw_coordinates()
 
 }
 
+void init()
+{
+    glClearColor(0.75, 0.75, 0.75, 0);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void car()
+{
+    GLfloat size = 0.2;
+    GLfloat wheel_init = 0.1;
+
+    // vozilo
+    glPushMatrix();
+        glColor3f(0, 0, 0);
+        glTranslatef(0, 0.1, 0);
+        glutWireCube(size);
+    glPopMatrix();
+
+    // prednji tockovi
+    glPushMatrix();
+        glColor3f(1, 0, 1);
+        glTranslatef(-wheel_init, 0, -wheel_init);
+        // levi tocak
+        glutWireSphere(0.05, 10, 10);
+
+        glTranslatef(2 * wheel_init, 0, 0);
+        // desni tocak
+        glutWireSphere(0.05, 10, 10);
+    glPopMatrix();
+
+    // zadnji tockovi
+    glPushMatrix();
+        glTranslatef(-wheel_init, 0, wheel_init);
+        // levi tocak
+        glutWireSphere(0.05, 10, 10);
+
+        glTranslatef(2 * wheel_init, 0, 0);
+        // desni tocak
+        glutWireSphere(0.05, 10, 10);
+    glPopMatrix();
+
+}
