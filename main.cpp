@@ -6,21 +6,28 @@
 #include <GL/glu.h>
 #include <GL/gl.h>
 #include <vector>
+
 #include <algorithm>
 #include "figures.h"
 
-#define TIMER_ID 0
-#define TIMER_INTERVAL 10
 
 void on_timer(int value);
 void on_display();
 void on_keyboard(unsigned char key, int x, int y);
+void on_timer(int value);
 void on_reshape(int w, int h);
 void init();
 
 int window_width = 800;
 int window_height = 500;
 std::vector<float> camera_pos {1.0, 1.0, 1.0};
+
+float dz = 0;
+float dx = 0;
+float dy = 0;
+
+bool engine_on;
+bool in_reverse;
 
 int main(int argc, char* argv[])
 {
@@ -63,6 +70,10 @@ void on_display()
 
     ground();
     coordinates();
+
+    // car movement
+    glRotatef(dx, 0, 1, 0);
+    glTranslatef(0, 0, dz);
     car();
 
     glutSwapBuffers();
@@ -85,9 +96,35 @@ void on_keyboard(unsigned char key, int x, int y)
         case 27:
             exit(0);
             break;
+
+        case 'w':
+            in_reverse = false;
+            if (!engine_on) {
+                glutTimerFunc(10, on_timer, 0);
+                engine_on = true;
+            }
+            break;
+        case 's':
+            in_reverse = true;
+            break;
+        case 'a':
+            if (engine_on)
+                dx += 0.3;
+            break;
+        case 'd':
+            if (engine_on)
+                dx -= 0.3;
+            break;
+        case 32:
+            engine_on = false;
+            break;
+        case 'r':
+            glutTimerFunc(10, on_timer, 0);
+            engine_on = false;
+            dz = 0;
+            break;
     }
 
-    glutPostRedisplay();
 }
 
 
@@ -95,5 +132,21 @@ void init()
 {
     glClearColor(0.75, 0.75, 0.75, 0);
     glEnable(GL_DEPTH_TEST);
+}
+
+void on_timer(int value)
+{
+    if (value != 0) {
+      return;
+    }
+
+    if (engine_on) {
+        dz += in_reverse ? -0.005 : 0.007;
+    }
+    glutPostRedisplay();
+
+    if (engine_on) {
+        glutTimerFunc(10, on_timer, 0);
+    }
 }
 
